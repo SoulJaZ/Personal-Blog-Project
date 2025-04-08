@@ -23,10 +23,16 @@ function obtenerArticulos() {
     // Solo procesar archivos JSON.
     if (nombreArchivo.endsWith(".json")) {
       try {
-        const contenido = fs.readFileSync(
-          `./articulos/${nombreArchivo}`,
-          "utf-8"
-        );
+        const rutaArchivo = `./articulos/${nombreArchivo}`;
+        const contenido = fs
+          .readFileSync(`./articulos/${nombreArchivo}`, "utf-8")
+          .trim();
+
+        if (!contenido) {
+          console.warn(`Archivo vacio: ${nombreArchivo}`);
+          return;
+        }
+
         const articulo = JSON.parse(contenido);
         articulo.filename = nombreArchivo; // Guardar nombre del archivo.
         articulos.push(articulo);
@@ -34,6 +40,13 @@ function obtenerArticulos() {
         console.error(
           `Error al procesar el archivo: ${nombreArchivo}: `,
           error
+        );
+        console.error(
+          `Ruta completa: ${path.resolve(
+            __dirname,
+            "articulos",
+            nombreArchivo
+          )}`
         );
       }
     }
@@ -48,7 +61,8 @@ const servidor = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   // Condición que verifica si es posible acceder a la página de inicio - lista de articulos.
-  if (condition) {
+  if (url.pathname === "/") {
+    const articulos = obtenerArticulos();
   } else {
     res.writeHead(404);
     res.end("Página no encontrada.");
